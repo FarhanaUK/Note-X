@@ -1,0 +1,22 @@
+{
+  "manifest_version": 3,
+  "name": "Note X",
+  "version": "1.0",
+  "description": "A simple notepad that allows you to save and manage links with notes.",
+ 
+ 
+  "action": {
+    "default_popup": "index.html"
+  },
+  "permissions": ["scripting","storage"],
+  "icons": {
+    "48": "icon-48.png",
+    "128": "icon-128.png"
+  },
+  // "background": {
+  //   "service_worker": "scripts.js"
+  // },
+  "host_permissions": ["<all_urls>"]
+}
+
+  
