@@ -4,36 +4,43 @@ import {faTrash} from "@fortawesome/free-solid-svg-icons";
 import './App.css'
 
 const ADD_LINK = "ADD_LINK";
-const ADD_SUBJECT = "ADD_SUBJECT";
-const ADD_NOTES = "ADD_NOTES";
-const MESSAGE = "MESSAGE";
 const DELETE_LINK = "DELETE";
+const ADD_NEW_SECTION = "ADD_NEW_SECTION";
+const DELETE_SECTION = "DELETE_SECTION";
+const UPDATE_SECTION = "UPDATE_SECTION";
+const MESSAGE = "MESSAGE";
+
+
 //initialsTATE
 
 const initialValue = {
-  url: [],
-  subject: "",
-  notes: "",
   message: "",
+  sections: [],
 };
 
 const reducer = (state, action) => {
   switch (action.type) {
+    case ADD_NEW_SECTION: {
+      return {...state, sections: [...state.sections, { subject: "",notes: "", url: []} ]}
+    }
+    case UPDATE_SECTION: {
+      const {idx, field, value} = action.payload;
+      const updatedSection = state.sections.map((section, i) => i === idx ? {...section, [field]: value} : section)
+      return {...state, sections: updatedSection}
+    }
+
     case ADD_LINK: {
-      return { ...state, url: [...state.url, action.payload], message: "" };
+    const {idx, url} = action.payload
+    const updatedSections = state.sections.map((section, i)=> i === idx ? {...section, url: [...section.url, url]} : section)
+      return {...state, sections: updatedSections, message: ""}
     }
     case DELETE_LINK: {
-      return {
-        ...state,
-        url: state.url.filter((link, idx) => idx !== action.payload),
-      };
+      const {sectionIdx, urlIdx} = action.payload
+      const updatedSections = state.sections.map((section, i)=> i === sectionIdx ? {...section, url: section.url.filter((_, index)=> index !== urlIdx)} : section)
+      return {...state, sections: updatedSections};
     }
-    case ADD_NOTES: {
-      return { ...state, notes: action.payload };
-    }
-    case ADD_SUBJECT: {
-      return { ...state, subject: action.payload };
-    }
+    case DELETE_SECTION:
+      return {...state, sections: state.sections.filter((_, i)=> i !== action.payload)}
     case MESSAGE: {
       return { ...state, message: action.payload };
     }
@@ -45,10 +52,12 @@ const reducer = (state, action) => {
 function App() {
   const [state, dispatch] = useReducer(reducer, initialValue);
 
-  const onChange = ({ target: { name, value } }) => {
-    dispatch({
-      type: name === "subject" ? ADD_SUBJECT : ADD_NOTES,
-      payload: value,
+  const addSection = () => {
+    dispatch({ type: ADD_NEW_SECTION})
+  }
+
+  const onChange = (idx, e) => {
+    dispatch({type: UPDATE_SECTION
     });
     console.log("button clicked");
   };
@@ -66,17 +75,25 @@ function App() {
     evt.target.elements.url.value = "";
   };
   return (
-    <form onSubmit={onSubmit}>
+  
       <div className="container">
-      <h1 className="text-3xl font-bold mb-4 text-violet-950 text-center ">Note X</h1>
-        <div className="mb-4">
+        <h1 className="text-3xl font-bold mb-4 text-violet-950 text-center ">Note X</h1>
+
+        <button onClick={addSection} className="mb-4 p-4 border border-gray-300 rounded">Add</button>
+      
+    {state.sections.map((section, sectionIdx) => (
+      <div key={sectionIdx} className="mb-4 p-4 border border-gray-300 rounded"> 
+      <button onClick={() => dispatch({type: DELETE_SECTION, payload: sectionIdx})}
+      className="text-red-500 bg-violet-950 hover:text-red-700 mb-2">Remove</button>
+      
+   
           <input
             name="subject"
             placeholder="Title"
             type="text"
             onChange={onChange}
             value={state.subject}
-             className="w-full p-2 mb-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 font-bold"
+            className="w-full p-2 mb-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 font-bold"
           />
 
           <input
@@ -85,42 +102,58 @@ function App() {
             type="text"
             onChange={onChange}
             value={state.notes}
-            className="w-full p-2 mb-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-            
+            className="w-full h-24 p-2 mb-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
-          <div className="flex items-center">
-            <input 
-            name="url" 
-            placeholder="Add a link" 
-            type="text" 
-            className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"/>
-            
-            <button type="submit" className="ml-2 text-white bg-violet-950 hover:text-green-200 ">+</button>
           
-          {state.message && (
-            <div className="text-red-500 mt-2">
-              {state.message}
-            </div>
-          )}
+          <form onSubmit = {(e) => onSubmit(e, sectionIdx)}>
+          <div className="flex items-center">
+            <input
+              name="url"
+              placeholder="Add a link"
+              type="text"
+              className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+
+            <button
+              type="submit"
+              className="ml-2 text-white bg-violet-950 hover:text-green-200 "
+            >
+              +
+            </button>
           </div>
-          <div>
+          </form>
+
+
             <ul className="list-disc pl-5">
-              {state.url.map((link, idx) => {
-                return (
-                  <li key={idx} className="flex justify-between items-center mb-2">
-                 <a href={link} target="_blank" rel="noopener noreferrer" className="text-blue-500 underline">{link}</a> 
-                    <button onClick={() => {dispatch({ type: DELETE_LINK, payload: idx });
-                      }}  className="ml-2 text-red-500 bg-violet-950 hover:text-red-700">
+              {section.url.map((link, urlIdx) => {
+                 <li
+                    key={urlIdx}
+                    className="flex justify-between items-center mb-2"
+                  >
+                    <a
+                      href={link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-500 underline"
+                    >
+                      {link}
+                    </a>
+                    <button
+                      onClick={() => {
+                        dispatch({ type: DELETE_LINK, payload: urlIdx });
+                      }}
+                      className="ml-2 text-red-500 bg-violet-950 hover:text-red-700"
+                    >
                       <FontAwesomeIcon icon={faTrash} />
                     </button>
                   </li>
-                );
-              })}
+                 })}
             </ul>
           </div>
-        </div>
-      </div>
-    </form>
+        
+  ))}
+      
+</div>
   );
 }
 
