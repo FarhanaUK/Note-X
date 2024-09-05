@@ -4,7 +4,7 @@ import {faTrash} from "@fortawesome/free-solid-svg-icons";
 import './App.css'
 
 const ADD_LINK = "ADD_LINK";
-const DELETE_LINK = "DELETE";
+const DELETE_LINK = "DELETE_LINK";
 const ADD_NEW_SECTION = "ADD_NEW_SECTION";
 const DELETE_SECTION = "DELETE_SECTION";
 const UPDATE_SECTION = "UPDATE_SECTION";
@@ -15,7 +15,9 @@ const MESSAGE = "MESSAGE";
 
 const initialValue = {
   message: "",
-  sections: [],
+  sections: [
+    { subject: "", notes: "", url: [] }  
+  ],
 };
 
 const reducer = (state, action) => {
@@ -40,6 +42,7 @@ const reducer = (state, action) => {
       return {...state, sections: updatedSections};
     }
     case DELETE_SECTION:
+
       return {...state, sections: state.sections.filter((_, i)=> i !== action.payload)}
     case MESSAGE: {
       return { ...state, message: action.payload };
@@ -57,22 +60,21 @@ function App() {
   }
 
   const onChange = (idx, e) => {
-    dispatch({type: UPDATE_SECTION
-    });
-    console.log("button clicked");
+    dispatch({type: UPDATE_SECTION, payload: { idx, field: e.target.name, value: e.target.value}});
+ 
   };
 
-  const onSubmit = (evt) => {
-    evt.preventDefault();
-    console.log("button clicked");
-    const newUrl = evt.target.elements.url.value.trim();
+  const onSubmit = (e, idx) => {
+    e.preventDefault();
 
-    if (!newUrl) {
+    const url = e.target.elements.url.value.trim();
+
+    if (!url) {
       dispatch({ type: MESSAGE, payload: "You must add a link" });
       return;
     }
-    dispatch({ type: ADD_LINK, payload: newUrl });
-    evt.target.elements.url.value = "";
+    dispatch({ type: ADD_LINK, payload: {idx, url} });
+    e.target.elements.url.value = "";
   };
   return (
   
@@ -84,15 +86,15 @@ function App() {
     {state.sections.map((section, sectionIdx) => (
       <div key={sectionIdx} className="mb-4 p-4 border border-gray-300 rounded"> 
       <button onClick={() => dispatch({type: DELETE_SECTION, payload: sectionIdx})}
-      className="text-red-500 bg-violet-950 hover:text-red-700 mb-2">Remove</button>
+      className="ml-2 text-white bg-violet-950 hover:text-green-200">Remove</button>
       
    
           <input
             name="subject"
             placeholder="Title"
             type="text"
-            onChange={onChange}
-            value={state.subject}
+            onChange={(e) => onChange(sectionIdx, e)}
+            value={section.subject}
             className="w-full p-2 mb-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 font-bold"
           />
 
@@ -100,8 +102,8 @@ function App() {
             name="notes"
             placeholder="Notes"
             type="text"
-            onChange={onChange}
-            value={state.notes}
+            onChange={(e) => onChange(sectionIdx, e)}
+            value={section.notes}
             className="w-full h-24 p-2 mb-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
           
@@ -123,10 +125,10 @@ function App() {
           </div>
           </form>
 
-
+          {section.url.length > 0 && (
             <ul className="list-disc pl-5">
-              {section.url.map((link, urlIdx) => {
-                 <li
+              {section.url.map((link, urlIdx) => 
+                 (<li
                     key={urlIdx}
                     className="flex justify-between items-center mb-2"
                   >
@@ -140,20 +142,27 @@ function App() {
                     </a>
                     <button
                       onClick={() => {
-                        dispatch({ type: DELETE_LINK, payload: urlIdx });
+                        dispatch({ type: DELETE_LINK, payload: { sectionIdx, urlIdx } });
                       }}
                       className="ml-2 text-red-500 bg-violet-950 hover:text-red-700"
                     >
                       <FontAwesomeIcon icon={faTrash} />
                     </button>
-                  </li>
-                 })}
+                  </li>)
+                 )}
+                
             </ul>
+            )}
           </div>
         
   ))}
-      
+      {state.message && (
+        <div className="text-red-500 mt-2">
+          {state.message}
+        </div>
+        )}
 </div>
+
   );
 }
 
