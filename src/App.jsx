@@ -1,8 +1,10 @@
-import { useReducer } from 'react';
-import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
-import {faTrash} from "@fortawesome/free-solid-svg-icons"; 
-import './App.css'
+import { useReducer, useEffect } from "react";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faTrash } from "@fortawesome/free-solid-svg-icons";
+import validator from 'validator'
+import "./App.css";
 
+// Constants
 const ADD_LINK = "ADD_LINK";
 const DELETE_LINK = "DELETE_LINK";
 const ADD_NEW_SECTION = "ADD_NEW_SECTION";
@@ -10,93 +12,99 @@ const DELETE_SECTION = "DELETE_SECTION";
 const UPDATE_SECTION = "UPDATE_SECTION";
 const MESSAGE = "MESSAGE";
 
-
-//initialsTATE
-
-const initialValue = {
-  message: [],
-  sections: [
-    { subject: "", notes: "", url: [] }  
-  ],
+// Initial state
+const initialState = {
+  sections: [{ subject: "", notes: "", url: [], message: "" }],
 };
 
+// Reducer function
 const reducer = (state, action) => {
-  let newState;
-
   switch (action.type) {
-    case ADD_NEW_SECTION: 
-      newState = {
+    case ADD_NEW_SECTION:
+      return {
         ...state,
-        sections: [...state.sections, { subject: "", notes: "", url: [] }],
-        message: [...state.message, ""] // Add an empty message corresponding to the new section
+        sections: [...state.sections, { subject: "", notes: "", url: [], message: "" }],
       };
-      break;
-    
-    
+
     case UPDATE_SECTION: {
       const { idx, field, value } = action.payload;
-      const updatedSectionsAfterUpdate = state.sections.map((section, i) => i === idx ? { ...section, [field]: value } : section);
-      newState = { ...state, sections: updatedSectionsAfterUpdate };
+      return {
+        ...state,
+        sections: state.sections.map((section, i) =>
+          i === idx ? { ...section, [field]: value } : section
+        ),
+      };
     }
-      break;
-   
+
     case ADD_LINK: {
       const { idx: sectionIdx, url: newUrl } = action.payload;
-      const updatedSectionAfterLinkAdd = state.sections.map((section, i) => i === sectionIdx ? { ...section, url: [...section.url, newUrl] } : section);
-      newState = { ...state, sections: updatedSectionAfterLinkAdd, message: "" };
+      return {
+        ...state,
+        sections: state.sections.map((section, i) =>
+          i === sectionIdx ? { ...section, url: [...section.url, newUrl], message: "" } : section
+        ),
+      };
     }
-      break;
-    
+
     case DELETE_LINK: {
       const { sectionIdx: delSectionIdx, urlIdx } = action.payload;
-      const updatedSectionsAfterDelete = state.sections.map((section, i) => i === delSectionIdx ? { ...section, url: section.url.filter((_, index) => index !== urlIdx) } : section);
-      newState = { ...state, sections: updatedSectionsAfterDelete };
+      return {
+        ...state,
+        sections: state.sections.map((section, i) =>
+          i === delSectionIdx
+            ? { ...section, url: section.url.filter((_, index) => index !== urlIdx) }
+            : section
+        ),
+      };
     }
-      break;
-    
-      case DELETE_SECTION:
-        newState = { 
-          ...state, 
-          sections: state.sections.filter((_, i) => i !== action.payload),
-          message: state.message.filter((_, i) => i !== action.payload) // Remove the corresponding message
-        };
-        break;
+
+    case DELETE_SECTION:
+      return {
+        ...state,
+        sections: state.sections.filter((_, i) => i !== action.payload),
+      };
 
     case MESSAGE: {
-    const {sectionIdx, message} = action.payload;
-    const updatedMessage = [...state.message]
-    updatedMessage[sectionIdx] = message
-    newState = { ...state, message: updatedMessage };
-    break;
+      const { sectionIdx: msgSectionIdx, text } = action.payload;
+      return {
+        ...state,
+        sections: state.sections.map((section, i) =>
+          i === msgSectionIdx ? { ...section, message: text } : section
+        ),
+      };
     }
-      
-    
+
     default:
-      newState = state;
+      return state;
   }
-
-  // Save the updated state to localStorage
-  localStorage.setItem('notesState', JSON.stringify(newState));
-
-  return newState;
 };
 
-  const loadState = () => {
-    const savedState = localStorage.getItem('notesState')
-    return savedState ? JSON.parse(savedState) : initialValue
-  }
+// Load state from localStorage
+const loadState = () => {
+  const savedState = localStorage.getItem("notesState");
+  return savedState ? JSON.parse(savedState) : initialState;
+};
+
+
+
+  const isValidURL = (url) => validator.isURL(url);
 
 function App() {
   const [state, dispatch] = useReducer(reducer, loadState());
 
+  useEffect(() => {
+    localStorage.setItem("notesState", JSON.stringify(state));
+  }, [state]);
+
   const addSection = () => {
-    dispatch({ type: ADD_NEW_SECTION})
-    
-  }
+    dispatch({ type: ADD_NEW_SECTION });
+  };
 
   const onChange = (idx, e) => {
-    dispatch({type: UPDATE_SECTION, payload: { idx, field: e.target.name, value: e.target.value}});
- 
+    dispatch({
+      type: UPDATE_SECTION,
+      payload: { idx, field: e.target.name, value: e.target.value },
+    });
   };
 
   const onSubmit = (e, idx) => {
@@ -105,33 +113,43 @@ function App() {
     const url = e.target.elements.url.value.trim();
 
     if (!url) {
-      dispatch({ type: MESSAGE, payload: { sectionIdx: idx, message: "You must add a link" }});
+      dispatch({ type: MESSAGE, payload: { sectionIdx: idx, text: "You must add a link" } });
       return;
     }
 
-    dispatch({type: MESSAGE, payload: {sectionIdx: idx, message: ""}})
+    if (!isValidURL(url)) {
+      dispatch({ type: MESSAGE, payload: { sectionIdx: idx, text: "Please enter a valid URL" } });
+      return;
+    }
 
-    dispatch({ type: ADD_LINK, payload: {idx, url} });
+    dispatch({ type: ADD_LINK, payload: { idx, url } });
     e.target.elements.url.value = "";
   };
-  return (
-  
-      <div className="container max-w-screen-lg mx-auto p-2">
-       
-        <h1 className="text-3xl font-bold mb-2 text-blue-950 text-center mt-4">Note X</h1>
 
-        <div className="flex justify-center mb-4 sticky top-0 bg-white z-10 shadow-md">
-          <button onClick={addSection} className="border border-gray-300 rounded bg-blue-100 hover:bg-blue-200 p-2">
-            Add New
-          </button>
+  return (
+    <div className="container max-w-screen-lg mx-auto p-2">
+      <h1 className="text-3xl font-bold mb-2 text-blue-950 text-center mt-4">
+        Note X
+      </h1>
+
+      <div className="flex justify-center mb-4 sticky top-0 bg-white z-10 shadow-md">
+        <button
+          onClick={addSection}
+          className="border border-gray-300 rounded bg-blue-100 hover:bg-blue-200 p-2"
+        >
+          Add New
+        </button>
       </div>
-      
-    {state.sections.map((section, sectionIdx) => (
-      <div key={sectionIdx} className="mb-2 p-2 border border-gray-500 rounded "> 
-      <button onClick={() => dispatch({type: DELETE_SECTION, payload: sectionIdx})}
-      className="ml-2 mb-2 text-white bg-blue-950 hover:bg-red-800 mt-2">Remove</button>
-      
-   
+
+      {state.sections.map((section, sectionIdx) => (
+        <div key={sectionIdx} className="mb-2 p-2 border border-gray-500 rounded">
+          <button
+            onClick={() => dispatch({ type: DELETE_SECTION, payload: sectionIdx })}
+            className="ml-2 mb-2 text-white bg-blue-950 hover:bg-red-800 mt-2"
+          >
+            Remove
+          </button>
+
           <input
             name="subject"
             placeholder="Title"
@@ -139,7 +157,6 @@ function App() {
             onChange={(e) => onChange(sectionIdx, e)}
             value={section.subject}
             className="w-full p-2 mb-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 font-bold"
-           
           />
 
           <textarea
@@ -150,37 +167,34 @@ function App() {
             value={section.notes}
             className="w-full h-24 p-2 mb-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
-          
-          <form onSubmit = {(e) => onSubmit(e, sectionIdx)}>
-          <div className="flex items-center">
-            <input
-              name="url"
-              placeholder="Add a link"
-              type="text"
-              className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
 
-            <button
-              type="submit"
-              className="ml-2  text-white bg-blue-950 hover:bg-blue-900 "
-            >
-              +
-            </button>
-          </div>
-          {state.message[sectionIdx] && (
-            <p className='text-red-500 mt-1'>{state.message[sectionIdx]}</p>
+          <form onSubmit={(e) => onSubmit(e, sectionIdx)}>
+            <div className="flex items-center">
+              <input
+                name="url"
+                placeholder="Add a link"
+                type="text"
+                className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
 
-          )}
+              <button
+                type="submit"
+                className="ml-2 text-white bg-blue-950 hover:bg-blue-900"
+              >
+                +
+              </button>
+            </div>
 
-
-
+            {section.message && (
+              <div className="text-red-500 mt-2">{section.message}</div>
+            )}
           </form>
 
           {section.url.length > 0 && (
-            <div className='flex flex-col border border-gray-300 rounded bg-gray-100 mt-2'>
-            <ul className="space-y-2">
-              {section.url.map((link, urlIdx) => 
-                 (<li
+            <div className="flex flex-col border border-gray-300 rounded bg-gray-100 mt-2">
+              <ul className="space-y-2">
+                {section.url.map((link, urlIdx) => (
+                  <li
                     key={urlIdx}
                     className="flex justify-between items-center mb-2 border border-gray-400 rounded bg-gray-300 hover:bg-gray-400 p-2 break-all"
                   >
@@ -192,28 +206,22 @@ function App() {
                     >
                       {link}
                     </a>
-                   
+
                     <button
-                      onClick={() => {
-                        dispatch({ type: DELETE_LINK, payload: { sectionIdx, urlIdx } });
-                      }}
-                      className="ml-2 text-red-500 bg-blue-950 hover:text-red-700 "
+                      onClick={() => dispatch({ type: DELETE_LINK, payload: { sectionIdx, urlIdx } })}
+                      className="ml-2 text-red-500 bg-blue-950 hover:text-red-700"
+                      aria-label="Delete"
                     >
                       <FontAwesomeIcon icon={faTrash} />
-                    </button></li>)
-                  
-                 )}
-                
-            </ul>
-            
+                    </button>
+                  </li>
+                ))}
+              </ul>
             </div>
-            )}
-          </div>
-        
-  ))}
-  
-</div>
-
+          )}
+        </div>
+      ))}
+    </div>
   );
 }
 
