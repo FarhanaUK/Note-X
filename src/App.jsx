@@ -21,39 +21,59 @@ const initialValue = {
 };
 
 const reducer = (state, action) => {
+  let newState;
+
   switch (action.type) {
-    case ADD_NEW_SECTION: {
-      return {...state, sections: [...state.sections, { subject: "",notes: "", url: []} ]}
-    }
+    case ADD_NEW_SECTION: 
+      newState = { ...state, sections: [...state.sections, { subject: "", notes: "", url: [] }] };
+      break;
+    
     case UPDATE_SECTION: {
-      const {idx, field, value} = action.payload;
-      const updatedSection = state.sections.map((section, i) => i === idx ? {...section, [field]: value} : section)
-      return {...state, sections: updatedSection}
+      const { idx, field, value } = action.payload;
+      const updatedSectionsAfterUpdate = state.sections.map((section, i) => i === idx ? { ...section, [field]: value } : section);
+      newState = { ...state, sections: updatedSectionsAfterUpdate };
     }
-
+      break;
+   
     case ADD_LINK: {
-    const {idx, url} = action.payload
-    const updatedSections = state.sections.map((section, i)=> i === idx ? {...section, url: [...section.url, url]} : section)
-      return {...state, sections: updatedSections, message: ""}
+      const { idx: sectionIdx, url: newUrl } = action.payload;
+      const updatedSectionAfterLinkAdd = state.sections.map((section, i) => i === sectionIdx ? { ...section, url: [...section.url, newUrl] } : section);
+      newState = { ...state, sections: updatedSectionAfterLinkAdd, message: "" };
     }
+      break;
+    
     case DELETE_LINK: {
-      const {sectionIdx, urlIdx} = action.payload
-      const updatedSections = state.sections.map((section, i)=> i === sectionIdx ? {...section, url: section.url.filter((_, index)=> index !== urlIdx)} : section)
-      return {...state, sections: updatedSections};
+      const { sectionIdx: delSectionIdx, urlIdx } = action.payload;
+      const updatedSectionsAfterDelete = state.sections.map((section, i) => i === delSectionIdx ? { ...section, url: section.url.filter((_, index) => index !== urlIdx) } : section);
+      newState = { ...state, sections: updatedSectionsAfterDelete };
     }
+      break;
+    
     case DELETE_SECTION:
+      newState = { ...state, sections: state.sections.filter((_, i) => i !== action.payload) };
+      break;
 
-      return {...state, sections: state.sections.filter((_, i)=> i !== action.payload)}
-    case MESSAGE: {
-      return { ...state, message: action.payload };
-    }
+    case MESSAGE: 
+      newState = { ...state, message: action.payload };
+      break;
+    
     default:
-      return state;
+      newState = state;
   }
+
+  // Save the updated state to localStorage
+  localStorage.setItem('notesState', JSON.stringify(newState));
+
+  return newState;
 };
 
+  const loadState = () => {
+    const savedState = localStorage.getItem('notesState')
+    return savedState ? JSON.parse(savedState) : initialValue
+  }
+
 function App() {
-  const [state, dispatch] = useReducer(reducer, initialValue);
+  const [state, dispatch] = useReducer(reducer, loadState());
 
   const addSection = () => {
     dispatch({ type: ADD_NEW_SECTION})
@@ -78,15 +98,20 @@ function App() {
   };
   return (
   
-      <div className="container">
-        <h1 className="text-3xl font-bold mb-4 text-violet-950 text-center ">Note X</h1>
+      <div className="container max-w-screen-lg mx-auto p-2">
+       
+        <h1 className="text-3xl font-bold mb-2 text-blue-950 text-center mt-4">Note X</h1>
 
-        <button onClick={addSection} className="mb-4 p-4 border border-gray-300 rounded">Add</button>
+        <div className="flex justify-center mb-4 sticky top-0 bg-white z-10 shadow-md">
+          <button onClick={addSection} className="border border-gray-300 rounded bg-blue-100 hover:bg-blue-200 p-2">
+            Add New
+          </button>
+      </div>
       
     {state.sections.map((section, sectionIdx) => (
-      <div key={sectionIdx} className="mb-4 p-4 border border-gray-300 rounded"> 
+      <div key={sectionIdx} className="mb-2 p-2 border border-gray-500 rounded "> 
       <button onClick={() => dispatch({type: DELETE_SECTION, payload: sectionIdx})}
-      className="ml-2 text-white bg-violet-950 hover:text-green-200">Remove</button>
+      className="ml-2 mb-2 text-white bg-blue-950 hover:bg-red-800 mt-2">Remove</button>
       
    
           <input
@@ -96,9 +121,10 @@ function App() {
             onChange={(e) => onChange(sectionIdx, e)}
             value={section.subject}
             className="w-full p-2 mb-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 font-bold"
+           
           />
 
-          <input
+          <textarea
             name="notes"
             placeholder="Notes"
             type="text"
@@ -118,7 +144,7 @@ function App() {
 
             <button
               type="submit"
-              className="ml-2 text-white bg-violet-950 hover:text-green-200 "
+              className="ml-2  text-white bg-blue-950 hover:bg-blue-900 "
             >
               +
             </button>
@@ -126,32 +152,36 @@ function App() {
           </form>
 
           {section.url.length > 0 && (
-            <ul className="list-disc pl-5">
+            <div className='flex flex-col border border-gray-300 rounded bg-gray-100 mt-2'>
+            <ul className="space-y-2">
               {section.url.map((link, urlIdx) => 
                  (<li
                     key={urlIdx}
-                    className="flex justify-between items-center mb-2"
+                    className="flex justify-between items-center mb-2 border border-gray-400 rounded bg-gray-300 hover:bg-gray-400 p-2 break-all"
                   >
                     <a
                       href={link}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-blue-500 underline"
+                      className="text-blue-600 hover:text-blue-600 hover:underline ml-1"
                     >
                       {link}
                     </a>
+                   
                     <button
                       onClick={() => {
                         dispatch({ type: DELETE_LINK, payload: { sectionIdx, urlIdx } });
                       }}
-                      className="ml-2 text-red-500 bg-violet-950 hover:text-red-700"
+                      className="ml-2 text-red-500 bg-blue-950 hover:text-red-700 "
                     >
                       <FontAwesomeIcon icon={faTrash} />
-                    </button>
-                  </li>)
+                    </button></li>)
+                  
                  )}
                 
             </ul>
+            
+            </div>
             )}
           </div>
         
