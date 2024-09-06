@@ -14,7 +14,7 @@ const MESSAGE = "MESSAGE";
 //initialsTATE
 
 const initialValue = {
-  message: "",
+  message: [],
   sections: [
     { subject: "", notes: "", url: [] }  
   ],
@@ -25,8 +25,13 @@ const reducer = (state, action) => {
 
   switch (action.type) {
     case ADD_NEW_SECTION: 
-      newState = { ...state, sections: [...state.sections, { subject: "", notes: "", url: [] }] };
+      newState = {
+        ...state,
+        sections: [...state.sections, { subject: "", notes: "", url: [] }],
+        message: [...state.message, ""] // Add an empty message corresponding to the new section
+      };
       break;
+    
     
     case UPDATE_SECTION: {
       const { idx, field, value } = action.payload;
@@ -49,13 +54,22 @@ const reducer = (state, action) => {
     }
       break;
     
-    case DELETE_SECTION:
-      newState = { ...state, sections: state.sections.filter((_, i) => i !== action.payload) };
-      break;
+      case DELETE_SECTION:
+        newState = { 
+          ...state, 
+          sections: state.sections.filter((_, i) => i !== action.payload),
+          message: state.message.filter((_, i) => i !== action.payload) // Remove the corresponding message
+        };
+        break;
 
-    case MESSAGE: 
-      newState = { ...state, message: action.payload };
-      break;
+    case MESSAGE: {
+    const {sectionIdx, message} = action.payload;
+    const updatedMessage = [...state.message]
+    updatedMessage[sectionIdx] = message
+    newState = { ...state, message: updatedMessage };
+    break;
+    }
+      
     
     default:
       newState = state;
@@ -77,6 +91,7 @@ function App() {
 
   const addSection = () => {
     dispatch({ type: ADD_NEW_SECTION})
+    
   }
 
   const onChange = (idx, e) => {
@@ -90,9 +105,12 @@ function App() {
     const url = e.target.elements.url.value.trim();
 
     if (!url) {
-      dispatch({ type: MESSAGE, payload: "You must add a link" });
+      dispatch({ type: MESSAGE, payload: { sectionIdx: idx, message: "You must add a link" }});
       return;
     }
+
+    dispatch({type: MESSAGE, payload: {sectionIdx: idx, message: ""}})
+
     dispatch({ type: ADD_LINK, payload: {idx, url} });
     e.target.elements.url.value = "";
   };
@@ -149,6 +167,13 @@ function App() {
               +
             </button>
           </div>
+          {state.message[sectionIdx] && (
+            <p className='text-red-500 mt-1'>{state.message[sectionIdx]}</p>
+
+          )}
+
+
+
           </form>
 
           {section.url.length > 0 && (
@@ -186,11 +211,7 @@ function App() {
           </div>
         
   ))}
-      {state.message && (
-        <div className="text-red-500 mt-2">
-          {state.message}
-        </div>
-        )}
+  
 </div>
 
   );
