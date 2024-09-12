@@ -1,10 +1,32 @@
-/* body {
-  max-width: 1280px;
-  margin:auto;
-  padding: 2rem;
-  text-align: center;
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-  
 
-} */
+body {
+  display: flex; 
+  flex-direction: column; 
+  justify-content: center; 
+  align-items: center; 
+  min-height: 100vh; 
+  margin: 0; 
+  text-align: center; 
+}
 
+
+body {
+  @apply bg-white text-black;
+}
+
+.container {
+  @apply bg-gray-100;
+}
+
+/* Dark mode styles should be in Tailwind classes or use a `dark` class on the `body` element */
+.dark {
+  @apply bg-gray-900 text-white;
+}
+
+.dark .container {
+  @apply bg-gray-900;
+}
