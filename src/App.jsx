@@ -1,6 +1,7 @@
 import { useReducer, useEffect } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTrash } from "@fortawesome/free-solid-svg-icons";
+import { faDownload} from '@fortawesome/free-solid-svg-icons'
 import validator from "validator";
 import "./App.css";
 
@@ -122,6 +123,37 @@ const loadState = () => {
 
 const isValidURL = (url) => validator.isURL(url);
 
+const extractDomain = (url) => {
+try {
+const {hostname} = new URL(url)
+const protocol = url.startsWith("https") ? "https://" : "http://"
+return `${protocol}${hostname}`
+} catch {
+  return ""
+}
+}
+
+const downloadNotes = (state) => {
+  
+  const textContent = state.sections.map((section, index) => {
+    return `Section ${index + 1}:\nTitle: ${section.subject}\nNotes: ${section.notes}\nLinks:\n${section.url.map(link => `- ${extractDomain(link)} (${link})`).join('\n')}\n\n`;
+  }).join('');
+
+  const blob = new Blob([textContent], { type: 'text/plain' });
+  const url = URL.createObjectURL(blob);
+
+ 
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'notes.json'; 
+  document.body.appendChild(a);
+  a.click();
+
+ 
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url); 
+}
+
 function App() {
   const [state, dispatch] = useReducer(reducer, loadState());
 
@@ -175,20 +207,30 @@ function App() {
 
   return (
     <div className={`container max-w-screen-lg mx-auto p-2 ${state.darkModeOn ? 'dark' : ''}`}>
+    <div className="flex justify-between items-center mb-4">
      <button
           onClick={toggleDarkMode}
-          className="ml-4 border border-gray-300 rounded bg-gray-100 hover:bg-gray-200 p-2"
+          className=" flex justify-start mb-4 ml-4 border border-gray-300 rounded bg-gray-100 bg-button-light dark:bg-button-dark hover:bg-gray-200 p-1 text-xs"
         >
           {state.darkModeOn ? 'Light Mode' : 'Dark Mode'}
         </button>
-      <h1 className="text-3xl font-bold mb-2 text-blue-950 text-center mt-4">
+        <button
+        onClick={() => downloadNotes(state)}
+        className="border border-gray-300 rounded dark:bg-input-dark-bg"
+      >
+     <FontAwesomeIcon icon={faDownload} />
+     
+      </button>
+</div>
+
+      <h1 className="text-3xl font-bold mb-2 text-blue-950 dark:text-text-dark text-center mt-4">
         Note X
       </h1>
 
-      <div className="flex justify-center mb-4 sticky top-0 bg-gray-100 z-10 shadow-md">
-        <button
+      <div className="flex justify-center mb-4 sticky dark:bg-input-dark-bg top-0 bg-gray-100 z-10 shadow-md">
+        <button 
           onClick={addSection}
-          className="border border-gray-300 rounded bg-blue-100 hover:bg-blue-200 p-2"
+          className="border border-gray-300 rounded bg-button-light dark:bg-button-dark hover:bg-blue-200 p-2"
         >
           Add New
         </button>
@@ -207,7 +249,7 @@ function App() {
               type="text"
               onChange={(e) => onChange(sectionIdx, e)}
               value={section.subject}
-              className="w-full p-2 mb-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 font-bold"
+              className="w-full p-2 mb-2 border dark:bg-input-dark-bg-1 border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 font-bold"
             
             
             />
@@ -241,7 +283,7 @@ function App() {
               type="text"
               onChange={(e) => onChange(sectionIdx, e)}
               value={section.notes}
-              className="w-full h-24 p-2 mb-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full h-24 p-2 mb-2 dark:bg-input-dark-bg-1 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
             
 
@@ -251,7 +293,7 @@ function App() {
                   name="url"
                   placeholder="Add a link"
                   type="text"
-                  className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full p-2 dark:bg-input-dark-bg-1 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
 
                 <button
@@ -268,20 +310,20 @@ function App() {
             </form>
 
             {section.url && section.url.length > 0 && (
-              <div className="flex flex-col border border-gray-300 rounded bg-gray-100 mt-2">
+              <div className="flex flex-col border border-gray-300 dark:bg-input-dark-bg-1 rounded bg-gray-100 mt-2">
                 <ul className="space-y-2">
                   {section.url.map((link, urlIdx) => (
                     <li
                       key={urlIdx}
-                      className="flex justify-between items-center mb-2 border border-gray-400 rounded bg-gray-300 hover:bg-gray-400 p-2 break-all"
+                      className="flex justify-between items-center mt-2 mb-2 border border-gray-400 rounded bg-gray-300 dark:bg-input-dark-bg-2  hover:bg-gray-400 p-2 break-all"
                     >
                       <a
                         href={link}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-blue-600 hover:text-blue-600 hover:underline ml-1"
+                        className="text-blue-600 dark:text-text-dark hover:text-blue-600 hover:underline ml-1"
                       >
-                        {link}
+                        {extractDomain(link)}
                       </a>
 
                       <button

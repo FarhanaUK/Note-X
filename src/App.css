@@ -13,6 +13,15 @@ body {
   text-align: center; 
 }
 
+/* Default background color */
+body {
+  background-color: #7b3232; /* Change to your default color */
+}
+
+/* Dark mode background color */
+body.dark-mode {
+  background-color: #333333; /* Change to your dark mode color */
+}
 
 body {
   @apply bg-white text-black;
