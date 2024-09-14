@@ -15,22 +15,23 @@ body {
 
 .container {
   min-height: 100vh; /* Ensures the container covers at least the viewport height */
+   min-width: 100vw;
   display: flex;
   flex-direction: column; /* Allows content to expand and contract properly */
 }
 
-.content {
-  flex: 1; /* Ensures the content area grows and shrinks as needed */
+/* .content {
+  flex: 1; /* Ensures the content area grows and shrinks as needed 
   display: flex;
   flex-direction: column;
-}
+} */
 
-.sticky-top {
+/* .sticky-top {
   position: sticky;
-  top: 0; /* Ensures the sticky element stays at the top */
-  background-color: inherit; /* Matches the container's background */
-  z-index: 10; /* Keeps the sticky element above other content */
-}
+  top: 0; /* Ensures the sticky element stays at the top 
+  background-color: inherit; /* Matches the container's background 
+  z-index: 10; /* Keeps the sticky element above other content 
+} */
 
 body {
   @apply bg-white text-black;
