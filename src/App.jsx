@@ -14,6 +14,7 @@ const UPDATE_SECTION = "UPDATE_SECTION";
 const MESSAGE = "MESSAGE";
 const DARK_MODE = "DARK_MODE";
 const TOGGLE_SECTION = "TOGGLE_SECTION";
+const DOWNLOAD_ERROR = "DOWNLOAD_ERROR"
 
 // Initial state
 const initialState = {
@@ -27,6 +28,7 @@ const initialState = {
       message: "",
     },
   ],
+  downloadError: "",
 };
 
 // Reducer function
@@ -110,6 +112,10 @@ const reducer = (state, action) => {
       return { ...state, darkModeOn: !state.darkModeOn };
     }
 
+    case DOWNLOAD_ERROR: {
+      return {...state, downloadError: action.payload}
+    }
+
     default:
       return state;
   }
@@ -133,8 +139,24 @@ return `${protocol}${hostname}`
 }
 }
 
-const downloadNotes = (state) => {
+const downloadNotes = (state, dispatch) => {
+  const emptySectionIdx = state.sections.findIndex((section) => !section.subject.trim());
+
+  if (emptySectionIdx !== -1) {
+    dispatch({
+      type: DOWNLOAD_ERROR,
+      payload: `Section ${emptySectionIdx + 1} is missing a Title.`,
+    });
+
+    dispatch({
+      type: UPDATE_SECTION,
+      payload: { idx: emptySectionIdx, field: "highlight", value: true },
+    });
+    return;
+  }
   
+  dispatch({ type: DOWNLOAD_ERROR, payload: ""})
+
   const textContent = state.sections.map((section, index) => {
     return `Section ${index + 1}:\nTitle: ${section.subject}\nNotes: ${section.notes}\nLinks:\n${section.url.map(link => `- ${extractDomain(link)} (${link})`).join('\n')}\n\n`;
   }).join('');
@@ -166,10 +188,18 @@ function App() {
   };
 
   const onChange = (idx, e) => {
+    const value = e.target.value
     dispatch({
       type: UPDATE_SECTION,
       payload: { idx, field: e.target.name, value: e.target.value },
     });
+
+
+    if(value.trim()) {
+      dispatch ({
+        type: UPDATE_SECTION, payload: { idx, field: "highlight", value: false}
+      })
+    }
   };
 
   const onSubmit = (e, idx) => {
@@ -207,7 +237,7 @@ function App() {
 
   return (
     <div className={`container max-w-screen-lg mx-auto p-2 ${state.darkModeOn ? 'dark' : ''}`}>
-    <div className="flex justify-between items-center mb-4">
+    <div className="sticky-top flex justify-between items-center mb-4">
      <button
           onClick={toggleDarkMode}
           className=" flex justify-start mb-4 ml-4 border border-gray-300 rounded bg-gray-100 bg-button-light dark:bg-button-dark hover:bg-gray-200 p-1 text-xs"
@@ -215,7 +245,7 @@ function App() {
           {state.darkModeOn ? 'Light Mode' : 'Dark Mode'}
         </button>
         <button
-        onClick={() => downloadNotes(state)}
+        onClick={() => downloadNotes(state, dispatch)}
         className="border border-gray-300 rounded dark:bg-input-dark-bg"
       >
      <FontAwesomeIcon icon={faDownload} />
@@ -226,6 +256,14 @@ function App() {
       <h1 className="text-3xl font-bold mb-2 text-blue-950 dark:text-text-dark text-center mt-4">
         Note X
       </h1>
+
+{state.downloadError && (
+<div className="text-red-500 mb-4 text-center">
+  {state.downloadError}
+</div>
+)}
+
+
 
       <div className="flex justify-center mb-4 sticky dark:bg-input-dark-bg top-0 bg-gray-100 z-10 shadow-md">
         <button 
@@ -249,7 +287,7 @@ function App() {
               type="text"
               onChange={(e) => onChange(sectionIdx, e)}
               value={section.subject}
-              className="w-full p-2 mb-2 border dark:bg-input-dark-bg-1 border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 font-bold"
+              className={`w-full p-2 mb-2 border dark:bg-input-dark-bg-1 border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 font-bold ${ section.highlight ? 'border-red-500' : ''}`}
             
             
             />

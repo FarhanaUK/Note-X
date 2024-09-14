@@ -13,14 +13,23 @@ body {
   text-align: center; 
 }
 
-/* Default background color */
-body {
-  background-color: #7b3232; /* Change to your default color */
+.container {
+  min-height: 100vh; /* Ensures the container covers at least the viewport height */
+  display: flex;
+  flex-direction: column; /* Allows content to expand and contract properly */
 }
 
-/* Dark mode background color */
-body.dark-mode {
-  background-color: #333333; /* Change to your dark mode color */
+.content {
+  flex: 1; /* Ensures the content area grows and shrinks as needed */
+  display: flex;
+  flex-direction: column;
+}
+
+.sticky-top {
+  position: sticky;
+  top: 0; /* Ensures the sticky element stays at the top */
+  background-color: inherit; /* Matches the container's background */
+  z-index: 10; /* Keeps the sticky element above other content */
 }
 
 body {
