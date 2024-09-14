@@ -284,13 +284,13 @@ function App() {
       <div className="flex justify-between items-center mb-4">
         <button
           onClick={toggleDarkMode}
-          className=" flex justify-start mb-4 ml-4 border border-gray-300 rounded bg-gray-100 bg-button-light dark:bg-button-dark hover:bg-gray-200 p-1 text-xs"
+          className=" flex justify-start mb-4 ml-2 mt-1 border border-gray-300 rounded bg-gray-100 bg-button-light dark:bg-button-dark hover:bg-gray-200 p-1 text-xs"
         >
           {state.darkModeOn ? "Light Mode" : "Dark Mode"}
         </button>
         <button
           onClick={() => downloadNotes(state, dispatch)}
-          className="border border-gray-300 rounded dark:bg-input-dark-bg"
+          className=" text-sm border border-gray-300 rounded dark:bg-input-dark-bg"
         >
           <FontAwesomeIcon icon={faDownload} />
         </button>
