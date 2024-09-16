@@ -18,7 +18,7 @@ body {
    min-width: 100vw;
   display: flex;
   flex-direction: column; /* Allows content to expand and contract properly */
-overflow: auto;
+
 }
 
 /* .content {
@@ -27,12 +27,12 @@ overflow: auto;
   flex-direction: column;
 } */
 
-/* .sticky-top {
+.sticky-top {
   position: sticky;
-  top: 0; /* Ensures the sticky element stays at the top 
-  background-color: inherit; /* Matches the container's background 
-  z-index: 10; /* Keeps the sticky element above other content 
-} */
+  top: 0; 
+  background-color: inherit; 
+  z-index: 10; 
+}
 
 body {
   @apply bg-white text-black;

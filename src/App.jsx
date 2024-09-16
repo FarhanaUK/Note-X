@@ -84,12 +84,13 @@ const reducer = (state, action) => {
       };
     }
 
-    case DELETE_SECTION:{
-const updatedSections = state.sections.filter((_, i) => i !== action.payload)
-const allTitlesFilled = updatedSections.every(
-  (section) => section.subject.trim() !== ""
-)
-    
+    case DELETE_SECTION: {
+      const updatedSections = state.sections.filter(
+        (_, i) => i !== action.payload
+      );
+      const allTitlesFilled = updatedSections.every(
+        (section) => section.subject.trim() !== ""
+      );
 
       return {
         ...state,
@@ -136,10 +137,10 @@ const allTitlesFilled = updatedSections.every(
 // Load state from localStorage
 const loadState = () => {
   try {
-  const savedState = localStorage.getItem("notesState");
-  return savedState ? JSON.parse(savedState) : initialState;
+    const savedState = localStorage.getItem("notesState");
+    return savedState ? JSON.parse(savedState) : initialState;
   } catch {
-    return initialState
+    return initialState;
   }
 };
 
@@ -217,22 +218,22 @@ function App() {
   const onChange = (idx, e) => {
     const value = e.target.value;
     const field = e.target.name;
-  
+
     dispatch({
       type: UPDATE_SECTION,
       payload: { idx, field, value },
     });
-  
+
     // Check if the current field is 'subject' and all sections have titles
     if (field === "subject") {
       const updatedSections = state.sections.map((section, i) =>
         i === idx ? { ...section, subject: value.trim() } : section
       );
-  
+
       const allTitlesFilled = updatedSections.every(
         (section) => section.subject.trim() !== ""
       );
-  
+
       if (allTitlesFilled) {
         dispatch({
           type: DOWNLOAD_ERROR,
@@ -381,9 +382,7 @@ function App() {
                 </div>
 
                 {section.message && (
-                  <div className="text-red-500 mt-2">{section.message}
-                  
-                  </div>
+                  <div className="text-red-500 mt-2">{section.message}</div>
                 )}
               </form>
 
