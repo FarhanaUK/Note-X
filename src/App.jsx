@@ -4,6 +4,7 @@ import { faTrash, faDownload } from "@fortawesome/free-solid-svg-icons";
 import validator from "validator";
 import "./App.css";
 
+
 // Constants
 const ADD_LINK = "ADD_LINK";
 const DELETE_LINK = "DELETE_LINK";
@@ -196,7 +197,7 @@ const downloadNotes = (state, dispatch) => {
 
   const a = document.createElement("a");
   a.href = url;
-  a.download = "notes.json";
+  a.download = "notes.text";
   document.body.appendChild(a);
   a.click();
 
