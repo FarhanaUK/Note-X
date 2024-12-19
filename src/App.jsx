@@ -6,7 +6,6 @@ import "./App.css";
 import { faSun, faMoon } from '@fortawesome/free-solid-svg-icons'
 
 
-// Constants
 const ADD_LINK = "ADD_LINK";
 const DELETE_LINK = "DELETE_LINK";
 const ADD_NEW_SECTION = "ADD_NEW_SECTION";
@@ -18,7 +17,7 @@ const TOGGLE_SECTION = "TOGGLE_SECTION";
 const DOWNLOAD_ERROR = "DOWNLOAD_ERROR";
 const UPDATE_SECTIONS = "UPDATE_SECTIONS";
 
-// Initial state
+
 const initialState = {
   sections: [
     {
@@ -33,7 +32,6 @@ const initialState = {
   downloadError: "",
 };
 
-// Reducer function
 const reducer = (state, action) => {
   switch (action.type) {
     case ADD_NEW_SECTION:
@@ -96,8 +94,8 @@ const reducer = (state, action) => {
 
       return {
         ...state,
-        sections: updatedSections, // Return the updated sections
-        downloadError: allTitlesFilled ? "" : state.downloadError, // Only clear error if all titles are filled
+        sections: updatedSections, 
+        downloadError: allTitlesFilled ? "" : state.downloadError, 
       };
     }
 
@@ -136,7 +134,7 @@ const reducer = (state, action) => {
   }
 };
 
-// Load state from localStorage
+
 const loadState = () => {
   try {
     const savedState = localStorage.getItem("notesState");
@@ -161,8 +159,8 @@ const extractDomain = (url) => {
 const downloadNotes = (state, dispatch) => {
   const sectionsWithEmptySubject = state.sections.map((section) => {
     return section.subject.trim() === ""
-      ? { ...section, highlight: true } // Mark sections with empty subjects
-      : { ...section, highlight: false }; // Reset highlight for sections with subjects
+      ? { ...section, highlight: true } 
+      : { ...section, highlight: false }; 
   });
 
   const emptySectionsExist = sectionsWithEmptySubject.some(
@@ -172,7 +170,7 @@ const downloadNotes = (state, dispatch) => {
   if (emptySectionsExist) {
     dispatch({
       type: UPDATE_SECTIONS,
-      payload: { sections: sectionsWithEmptySubject }, // Dispatch the updated sections array
+      payload: { sections: sectionsWithEmptySubject }, 
     });
     dispatch({
       type: DOWNLOAD_ERROR,
@@ -226,7 +224,7 @@ function App() {
       payload: { idx, field, value },
     });
 
-    // Check if the current field is 'subject' and all sections have titles
+    
     if (field === "subject") {
       const updatedSections = state.sections.map((section, i) =>
         i === idx ? { ...section, subject: value.trim() } : section
