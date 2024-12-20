@@ -4,7 +4,8 @@ import { faTrash } from "@fortawesome/free-solid-svg-icons";
 import validator from "validator";
 import "./App.css";
 import ToggleDarkMode from "./component/ToggleDarkMode";
-import Download from "./component/Download";
+import Download from "./component/Download"
+
 
 
 const ADD_LINK = "ADD_LINK";
