@@ -1,9 +1,10 @@
 import { useReducer, useEffect } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faTrash, faDownload } from "@fortawesome/free-solid-svg-icons";
+import { faTrash } from "@fortawesome/free-solid-svg-icons";
 import validator from "validator";
 import "./App.css";
-import { faSun, faMoon } from '@fortawesome/free-solid-svg-icons'
+import ToggleDarkMode from "./component/ToggleDarkMode";
+import Download from "./component/Download";
 
 
 const ADD_LINK = "ADD_LINK";
@@ -277,51 +278,20 @@ function App() {
   };
 
   return (
-    <div
-      className={`container max-w-screen-lg mx-auto p-2 ${
-        state.darkModeOn ? "dark" : ""
-      }`}
-    >
-      <div className="flex justify-between items-center mb-4">
-         <div className="flex justify-between items-center mb-4">
-        <label className="flex items-center cursor-pointer">
-
-          <input
-            type="checkbox"
-            className="sr-only peer"
-            checked={state.darkModeOn}
-            onChange={toggleDarkMode}
-          />
-          <div className="top-0 w-14 h-6 bg-gray-300 dark:bg-gray-800 rounded-full relative peer-focus:ring-2 peer-focus:ring-blue-500 peer-checked:bg-gray-800 transition duration-200">
-            <div
-              className={`absolute top-0 left-1 w-6 h-6 bg-white rounded-full flex items-center justify-center transition-transform duration-200 ${
-                state.darkModeOn ? "transform translate-x-6" : ""
-              }`}
-            >
-              {state.darkModeOn ? (
-                <FontAwesomeIcon
-                  icon={faMoon}
-                  style={{ color: "#291c62", fontSize: "16px" }}
-                />
-              ) : (
-                <FontAwesomeIcon
-                  icon={faSun}
-                  style={{ color: "#e4e5f1", fontSize: "16px" }}
-                />
-              )}
-            </div>
-          </div>
-        </label>
-      </div>
-
-
-        <button
-          onClick={() => downloadNotes(state, dispatch)}
-          className=" text-sm border border-gray-300 rounded dark:bg-input-dark-bg"
-        >
-          <FontAwesomeIcon icon={faDownload} />
-        </button>
-      </div>
+    
+    <div className={`container max-w-screen-lg mx-auto p-2 ${state.darkModeOn ? "dark" : "" }`}>
+     
+     <ToggleDarkMode
+        darkModeOn={state.darkModeOn}
+        toggleDarkMode={toggleDarkMode}
+    />
+    
+      <Download
+      downloadError={state.downloadError}
+        downloadNotes={downloadNotes}
+        state={state}
+        dispatch={dispatch}
+    />
 
       <h1 className="text-3xl font-bold mb-2 text-blue-950 dark:text-text-dark text-center mt-4">
         Note X
@@ -451,6 +421,7 @@ function App() {
         </div>
       ))}
     </div>
+    
   );
 }
 
